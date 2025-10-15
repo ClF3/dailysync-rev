@@ -1,18 +1,22 @@
 name: Dummy Action to keep action alive
 on:
   schedule:
-    - cron: "0 0 * * *"
+    - cron: "0 0 */14 * *"   # 每 14 天
+  workflow_dispatch: {}
+
+permissions:
+  contents: write
+
 jobs:
-  main-job:
-    name: Main Job
+  keepalive:
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v4
-  keepalive-job:
-    name: Keepalive Workflow
-    runs-on: ubuntu-latest
-    permissions:
-      actions: write
-    steps:
-      - uses: actions/checkout@v4
-      - uses: gautamkrishnar/keepalive-workflow@v2
+      - run: |
+          mkdir -p .github
+          date -u +"%Y-%m-%dT%H:%M:%SZ" > .github/.keepalive
+          git config user.name "github-actions[bot]"
+          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+          git add .github/.keepalive
+          git commit -m "chore: keepalive" || echo "no changes"
+          git push
